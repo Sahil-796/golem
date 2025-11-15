@@ -1,8 +1,8 @@
-module github.com/Sahil-796/golem/server
+module github.com/Sahil-796/golem
 
 go 1.25.3
 
-replace github.com/Sahil-796/golem/server => ./server
+replace github.com/Sahil-796/golem/ => ./
 
 require (
 	github.com/bytedance/sonic v1.14.0 // indirect

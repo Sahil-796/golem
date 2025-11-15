@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Sahil-796/golem/server/config"
+	"github.com/Sahil-796/golem/config"
 	"github.com/gin-gonic/gin"
 	// "github.com/Sahil-796/golem/server/pkg/balancer"
 	// "fmt"
