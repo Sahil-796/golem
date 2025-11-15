@@ -1,0 +1,10 @@
+server:
+  port: 8080
+
+loadbalancer:
+  strategy: round_robin
+
+targets:
+  - url: http://localhost:9001
+  - url: http://localhost:9002
+  - url: http://localhost:9003
