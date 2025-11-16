@@ -6,13 +6,15 @@ import (
 // config struct for configuration
 // includes LoadBalancer, Servers, Strategy
 type Config struct {
-	LoadBalancer struct {
-		Current int 		`yaml:"current"`
-		Mutex sync.Mutex 	`yaml:"mutex"`
-	} 					`yaml:"load_balancer"`
+	LoadBalancer LoadBalancer 	`yaml:"load_balancer"`
 	Strategy string 	`yaml:"strategy"`
 	Servers []Server 	`yaml:"servers"`
 }
+
+type LoadBalancer struct {
+		Current int 		`yaml:"current"`
+		Mutex sync.Mutex 	`yaml:"mutex"`
+	}
 
 
 type Server struct {
