@@ -48,6 +48,8 @@ func LoadConfig() (*types.Config, error){
       	
        cfg.Servers = append(cfg.Servers, types.Server{
        		URL: parsed, 
+        	Threshold: m["threshold"].(int),
+         	healthEndpoint: m["healthEndpoint"]
          	IsHealthy: true,
        }) //mutex - auto initialised
        

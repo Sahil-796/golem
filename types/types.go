@@ -19,6 +19,8 @@ type LoadBalancer struct {
 
 type Server struct {
 	URL *url.URL `yaml:"url"`
+	Threshold int `yaml:"threshold"`
+	HealthEndpoint string `yaml:"healthEndpoint"`
 	IsHealthy bool `yaml:"is_healthy"`
 	Mutex sync.Mutex `yaml:"mutex"`
 }

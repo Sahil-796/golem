@@ -4,7 +4,10 @@ loadbalancer:
 targets:
   - url: http://localhost:9001
     threshold: 2
+    healthEndpoint: /
   - url: http://localhost:9002
     threshold: 2
+    healthEndpoint: /
   - url: http://localhost:9003
     threshold: 2
+    healthEndpoint: /

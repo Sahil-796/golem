@@ -1,2 +1,2 @@
-package golem
+package core
 
