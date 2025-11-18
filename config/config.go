@@ -8,52 +8,40 @@ import (
 	"github.com/spf13/viper"
 )
 
-func LoadConfig() (*types.Config, error){
+func LoadConfig() (*types.Config, []*types.Server, error){
 	
+	// setup of viper
 	viper.SetConfigFile("config.yaml")
 	if err := viper.ReadInConfig(); err!=nil {
-		return nil, fmt.Errorf("error reading config: %w", err)
+		return nil, nil, fmt.Errorf("error reading config: %w", err)
 	}
 	
-	cfg := &types.Config{}
 	
-	cfg.Strategy = viper.GetString("loadbalancer.strategy")
-	rawTargets := viper.Get("targets")
+	cfg := &types.Config{} //return this
 	
-	if rawTargets == nil {
-		return nil, fmt.Errorf("no targets provided")
-    }
+	if err := viper.Unmarshal(cfg); err != nil {
+		return nil, nil, fmt.Errorf("error reading config.yaml: %w", err)
+	}
+
+	runtimeServers := make([]*types.Server, 0, len(cfg.Servers))
     
-    // asserting that rawTargets is an empty list with any types in it
-    list, ok := rawTargets.([]any) 
-    if !ok {
-    	return nil, fmt.Errorf("targets must be a list")
-    }
-    
-    for _, item := range list {
-    	// asserting again
-     	// the yaml returns url: ""  
-    	m, ok := item.(map[string]any)
-     	// if !ok, the cinfig,yaml syntax might have issues.  
-     	if !ok {
-      		return nil, fmt.Errorf("target urls must have valid syntax")
+    for _, serverConfig := range cfg.Servers {
+    	
+    	parsedURL, err := url.Parse(serverConfig.URL)
+     	if err!=nil || parsedURL.Host == "" {
+      		return nil, nil, fmt.Errorf("invalid url '%s': %w", serverConfig.URL, err)
       	}
-     	rawURL := m["url"].(string)
-      
-      //parsing url from config.yaml to net/url
-       parsed, err := url.Parse(rawURL)
-       if err != nil {
-          return nil, fmt.Errorf("invalid url '%s': %w", rawURL, err)
-       }
-      	
-       cfg.Servers = append(cfg.Servers, types.Server{
-       		URL: parsed, 
-        	Threshold: m["threshold"].(int),
-         	healthEndpoint: m["healthEndpoint"]
-         	IsHealthy: true,
-       }) //mutex - auto initialised
        
+       	server := &types.Server {
+	       URL: parsedURL,
+	       IsHealthy: true,
+	       ConsecutiveFailures: 0,
+	       ConsecutiveSuccesses: 0,
+        }
+        
+        runtimeServers = append(runtimeServers, server)
+
     }
     
-    return cfg, nil
+    return cfg, runtimeServers, nil
 }
