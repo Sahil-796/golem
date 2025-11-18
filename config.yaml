@@ -2,9 +2,18 @@ loadbalancer:
   strategy: round_robin
 
 targets:
-  - url: http://localhost:9001
-    threshold: 2
-    healthEndpoint: /
+  - url: "http://localhost:8080"
+    health_check:
+      protocol: "HTTP"
+      port: 8080
+      path: "/health"
+      timeout: "5s"
+      interval: "30s"
+      healthy_threshold: 5
+      unhealthy_threshold: 2
+      matcher: 200
+    
+    
   - url: http://localhost:9002
     threshold: 2
     healthEndpoint: /

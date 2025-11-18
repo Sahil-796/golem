@@ -1,14 +1,17 @@
 package types
+
 import (
-	"sync"
 	"net/url"
+	"sync"
+	"time"
 )
+
 // config struct for configuration
 // includes LoadBalancer, Servers, Strategy
 type Config struct {
 	LoadBalancer LoadBalancer 	`yaml:"load_balancer"`
 	Strategy string 	`yaml:"strategy"`
-	Servers []Server 	`yaml:"servers"`
+	ServerConfig []ServerConfig 	`yaml:"servers"`
 }
 
 type LoadBalancer struct {
@@ -23,4 +26,19 @@ type Server struct {
 	HealthEndpoint string `yaml:"healthEndpoint"`
 	IsHealthy bool `yaml:"is_healthy"`
 	Mutex sync.Mutex `yaml:"mutex"`
+}
+
+type ServerConfig struct {
+	URL string `yaml:"url"`
+	
+	HealthCheck struct {
+		Protocol string
+		Port int
+		Path string
+		Timeout time.Duration
+		Interval time.Duration
+		HealthyThreshold int
+		UnhealthyThreshold int
+		Code int
+	}
 }
