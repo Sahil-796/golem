@@ -24,6 +24,7 @@ type LoadBalancer struct {
 type Server struct {
 	URL            *url.URL   `yaml:"url"`
 	IsHealthy      bool       `yaml:"is_healthy"`
+	Status         string     `yaml:"status"`
 	ConsecutiveFailures int `yaml:"consecutive_failures"`
 	ConsecutiveSuccesses int `yaml:"consecutive_successes"`
 	Mutex          sync.Mutex `yaml:"mutex"`

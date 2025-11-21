@@ -35,6 +35,7 @@ func LoadConfig() (*types.Config, []*types.Server, error){
        	server := &types.Server {
 	       URL: parsedURL,
 	       IsHealthy: true,
+		   Status: "initial",
 	       ConsecutiveFailures: 0,
 	       ConsecutiveSuccesses: 0,
         }
