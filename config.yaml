@@ -3,9 +3,10 @@ loadbalancer:
 
 server_configs:
 
-  - url: "http://localhost:3000"  # url of your service
+  - url: "http://localhost:3000"  # url of your service (optional)
     health_check:  
-      protocol: http # protocol of your service, eg: http, https, tcp, grpc
+      host: "localhost"
+      protocol: "http" # protocol of your service, eg: http, https, tcp, grpc
       port: 3000 # which port your service runs on inside the container or host
       path: "/health" # path to health check ep (defaults to / if not specified)
       timeout: "3s" # timeout for health check request to register failure as timeout

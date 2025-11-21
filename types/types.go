@@ -38,6 +38,7 @@ type ServerConfig struct {
 }
 
 type HealthCheckConfig struct {
+	Host 			   string 		 `yaml:"host"`
 	Protocol           string        `yaml:"protocol"`
 	Port               int           `yaml:"port"`
 	Path               string        `yaml:"path"`
