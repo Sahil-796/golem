@@ -3,7 +3,7 @@ loadbalancer:
 
 server_configs:
 
-  - url: "http://localhost:3000"  # url of your service (optional)
+  - url: "http://localhost:3000"  # complete url of your service (optional)
     health_check:  
       host: "localhost"
       protocol: "http" # protocol of your service, eg: http, https, tcp, grpc
