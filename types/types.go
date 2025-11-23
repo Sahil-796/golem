@@ -33,15 +33,13 @@ type Server struct {
 
 // holds internally relevant or config data for each server
 type ServerConfig struct {
-	URL string `yaml:"url" mapstructure:"url"`
-
 	HealthCheckConfig HealthCheckConfig `yaml:"health_check" mapstructure:"health_check"`
 }
 
 type HealthCheckConfig struct {
-	Host               string        `yaml:"host" mapstructure:"host"` // required if URL missing
+	Host               string        `yaml:"host" mapstructure:"host"` 
 	Protocol           string        `yaml:"protocol" mapstructure:"protocol"` // default: http
-	Port               int           `yaml:"port" mapstructure:"port"` // required if URL missing
+	Port               int           `yaml:"port" mapstructure:"port"` 
 	Path               string        `yaml:"path" mapstructure:"path"` // default: /
 	Timeout            time.Duration `yaml:"timeout" mapstructure:"timeout"`
 	Interval           time.Duration `yaml:"interval" mapstructure:"interval"`
@@ -54,21 +52,22 @@ type HealthCheckConfig struct {
 func (sc *ServerConfig) Validate() error {
 	hc := sc.HealthCheckConfig
 
-	if sc.URL != "" {
-		return nil 
-	}
 
 	if hc.Host == "" {
-		return fmt.Errorf("either 'url' OR 'health_check.host' must be provided")
+		return fmt.Errorf("'health_check.host' must be provided")
 	}
-
-	if hc.Protocol == "tcp" && hc.Port == 0 {
-		return fmt.Errorf("tcp requires explicit port in health_check.port")
+	
+	validProtocols := map[string]bool{"http": true, "https": true, "tcp": false, "udp": false}
+	if!validProtocols[hc.Protocol] {
+		return fmt.Errorf("'health_check.protocol' must be one of %v", validProtocols)
 	}
-
-	// 4: HTTP / HTTPS → port can be missing (Docker / service discovery case)
-	//       BUT give a warning later (not here)
-	//       This is valid, let defaults or buildHealthURL handle it
+	
+	if hc.HealthyThreshold <= 0 {
+        return fmt.Errorf("'healthy_threshold' must be a positive integer (>= 1)")
+    }
+    if hc.UnhealthyThreshold <= 0 {
+        return fmt.Errorf("'unhealthy_threshold' must be a positive integer (>= 1)")
+    }
 
 	return nil
 }
@@ -87,10 +86,10 @@ func (hc *HealthCheckConfig) SetDefaults() {
 		hc.Interval = 10 * time.Second
 	}
 	if hc.HealthyThreshold == 0 {
-		hc.HealthyThreshold = 1
+		hc.HealthyThreshold = 3
 	}
 	if hc.UnhealthyThreshold == 0 {
-		hc.UnhealthyThreshold = 1
+		hc.UnhealthyThreshold = 3
 	}
 	if hc.Code == 0 {
 		hc.Code = 200

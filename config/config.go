@@ -8,6 +8,10 @@ import (
 	"github.com/spf13/viper"
 )
 
+
+// change this according to removed url and keep a final - parsed, built, validated url 
+// in Server.URL the concurrent one.
+
 func LoadConfig() (*types.Config, []*types.Server, error){
 	
 	// setup of viper
@@ -17,7 +21,7 @@ func LoadConfig() (*types.Config, []*types.Server, error){
 	}
 	
 	
-	cfg := &types.Config{} //return this
+	cfg := &types.Config{} 
 	
 	if err := viper.Unmarshal(cfg); err != nil {
 		return nil, nil, fmt.Errorf("error reading config.yaml: %w", err)
@@ -36,9 +40,10 @@ func LoadConfig() (*types.Config, []*types.Server, error){
             return nil, nil, fmt.Errorf("invalid server config: %w", err)
         }
     	
-    	parsedURL, err := url.Parse(serverConfig.URL)
-     	if err!=nil || parsedURL.Host == "" {
-      		return nil, nil, fmt.Errorf("invalid url '%s': %w", serverConfig.URL, err)
+        // parsing a final url and saving it in Server.URL url.URL
+    	parsedURL, err := BuildFinalURL(serverConfig.HealthCheckConfig)
+     	if err!=nil {
+      		return nil, nil, fmt.Errorf("invalid url : %w", err)
       	}
        
        	server := &types.Server {
@@ -56,27 +61,26 @@ func LoadConfig() (*types.Config, []*types.Server, error){
     return cfg, runtimeServers, nil
 }
 
-func buildHealthURL(sc *types.ServerConfig) (*url.URL, error) {
-	
-	parsed, err := url.Parse(sc.URL)
-	if err != nil {
-		return nil, fmt.Errorf("Invalid URL %s: %w", sc.URL, err)
-	}
-	
-	// behold generational if statements
-	
-	if sc.HealthCheckConfig.Protocol != "" {
-		parsed.Scheme = sc.HealthCheckConfig.Protocol
-	} else {
-		parsed.Scheme = "http"
-	}
-	
-	if sc.HealthCheckConfig.Port != "" {
-		parsed.Host = fmt.Sprintf("%s:%d")
-	} else {
-		parsed.Scheme = "http"
-	}
-	
-	return parsed, nil
-	
+
+func BuildFinalURL(hc types.HealthCheckConfig) (*url.URL, error) {
+    if hc.Host == "" {
+        return nil, fmt.Errorf("cannot build URL: host missing")
+    }
+
+    if hc.Protocol != "http" && hc.Protocol != "https" {
+        return nil, fmt.Errorf("build url: protocol '%s' not supported yet", hc.Protocol)
+    }
+    
+    host := hc.Host
+       if hc.Port > 0 {
+           host = fmt.Sprintf("%s:%d", hc.Host, hc.Port)
+       }
+   
+    built := &url.URL{
+           Scheme: hc.Protocol, // http / https
+           Host:   host,        // "api:3000" OR "localhost:8080"
+           Path:   hc.Path,     // "/health" OR "/"
+       }
+
+    return built, nil
 }

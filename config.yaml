@@ -3,8 +3,7 @@ loadbalancer:
 
 server_configs:
 
-  - url: "http://localhost:3000"  # complete url of your service (optional)
-    health_check:  
+  - health_check:  
       host: "localhost"
       protocol: "http" # protocol of your service, eg: http, https, tcp, grpc
       port: 3000 # which port your service runs on inside the container or host
@@ -16,14 +15,3 @@ server_configs:
       code: 200 # status code expected from health check ep 
 
 # to add more services, do this:
-
-  - url: "http://localhost:3001"  # url of your service
-    health_check:  
-      protocol: http # protocol of your service, eg: http, https, tcp, grpc
-      port: 3001 # which port your service runs on inside the container or host
-      path: "/health" # path to health check ep (defaults to / if not specified)
-      timeout: "3s" # timeout for health check request to register failure as timeout
-      interval: "5s" # interval between health checks
-      healthy_threshold: 2 # number of consecutive successful health checks required to mark healthy
-      unhealthy_threshold: 3 # number of consecutive failed health checks required to mark unhealthy
-      code: 200 # status code expected from health check ep 
