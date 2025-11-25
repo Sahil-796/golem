@@ -41,13 +41,19 @@ func LoadConfig() (*types.Config, []*types.Server, error){
         }
     	
         // parsing a final url and saving it in Server.URL url.URL
-    	parsedURL, err := BuildFinalURL(serverConfig.HealthCheckConfig)
+    	healthURL, err := BuildFinalURL(serverConfig.HealthCheckConfig)
      	if err!=nil {
       		return nil, nil, fmt.Errorf("invalid url : %w", err)
       	}
        
+       baseURL := &url.URL{
+           Scheme: healthURL.Scheme,
+           Host:   healthURL.Host,
+       }
+       
        	server := &types.Server {
-	       URL: parsedURL,
+	       URL: baseURL,
+		   HealthCheckURL: healthURL,							
 	       IsHealthy: true,
 		   Status: "initial",
 	       ConsecutiveFailures: 0,
@@ -79,7 +85,7 @@ func BuildFinalURL(hc types.HealthCheckConfig) (*url.URL, error) {
     built := &url.URL{
            Scheme: hc.Protocol, // http / https
            Host:   host,        // "api:3000" OR "localhost:8080"
-           Path:   hc.Path,     // "/health" OR "/"
+           Path:   "/",     // "/health" OR "/"
        }
 
     return built, nil

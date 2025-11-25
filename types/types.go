@@ -24,6 +24,7 @@ type LoadBalancer struct {
 // holds user relevant data for each server
 type Server struct {
 	URL            *url.URL   
+	HealthCheckURL *url.URL
 	IsHealthy      bool       
 	Status         string
 	ConsecutiveFailures int 
