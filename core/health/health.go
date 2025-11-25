@@ -1,8 +1,9 @@
 package core
 
 import (
+	"log"
 	"net/http"
-	"net/url"
+	"time"
 
 	"github.com/Sahil-796/golem/types"
 )
@@ -17,11 +18,21 @@ const (
 
 func ActiveCheck(servers []*types.Server, ServerConfig []types.ServerConfig) error {
 	
+	// servers: the live list of servers (mutex) which keeps track of health status of each server and is parallelized
+	// ServerConfig: the configuration for each server's health check
+	
 	for i := range servers {
 		
-		baseUrl := servers[i].URL
-		health := baseUrl.ResolveReference(&url.URL{Path: ServerConfig[i].HealthCheckConfig.Path})
-		result, err := http.Get(health.String())
+		healthUrl := servers[i].HealthCheckURL
+		
+		// setting up net call for /health route
+	
+		client := &http.Client{
+			Timeout: ServerConfig[i].HealthCheckConfig.Timeout,
+		}
+
+		result, err := client.Get(healthUrl.String())
+		servers[i].LastCheck = time.Now()
 		
 		if result != nil {
 			defer result.Body.Close()
@@ -30,6 +41,7 @@ func ActiveCheck(servers []*types.Server, ServerConfig []types.ServerConfig) err
 		servers[i].Mutex.Lock()
 		if err != nil || result.StatusCode != http.StatusOK {
 			
+			log.Printf("[HealthCheck] %s failed: %v", servers[i].HealthCheckURL, err)
 			servers[i].ConsecutiveFailures++
 			servers[i].ConsecutiveSuccesses = 0
 			

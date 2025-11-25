@@ -30,6 +30,7 @@ type Server struct {
 	ConsecutiveFailures int 
 	ConsecutiveSuccesses int 
 	Mutex          sync.Mutex 
+	LastCheck      time.Time
 }
 
 // holds internally relevant or config data for each server
