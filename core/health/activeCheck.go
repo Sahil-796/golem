@@ -23,7 +23,7 @@ func ActiveCheck(servers []*types.Server, ServerConfig []types.ServerConfig) err
 	
 	
 	client := &http.Client{
-		Timeout: 3*,
+		Timeout: 5*time.Second,
 	}
 	
 	for i := range servers {
@@ -32,9 +32,7 @@ func ActiveCheck(servers []*types.Server, ServerConfig []types.ServerConfig) err
 		
 		// setting up net call for /health route
 	
-		client := &http.Client{
-			Timeout: ServerConfig[i].HealthCheckConfig.Timeout,
-		}
+		client.Timeout = ServerConfig[i].HealthCheckConfig.Timeout
 
 		result, err := client.Get(healthUrl.String())
 		servers[i].LastCheck = time.Now()
