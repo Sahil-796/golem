@@ -16,6 +16,6 @@ func StartHealthCheckers(servers []*types.Server, cfg []types.ServerConfig) {
             for range ticker.C {
                 ActiveCheckSingle(servers[i], cfg[i]) // single server check
             }
-        }(i)
-    }
+        }(i)  // pass the i and dont use it directly
+    } 
 }
