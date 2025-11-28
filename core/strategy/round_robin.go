@@ -24,7 +24,7 @@ func (rr *RoundRobin) Next(servers []*types.Server) *types.Server {
 	defer rr.Mutex.Unlock() // defer to the end
 	n:=len(servers)
 	
-	for i:=0; i<n; i++ {
+	for range n {
 		
 		s := servers[rr.index]
 		rr.index = (rr.index +1) % n
