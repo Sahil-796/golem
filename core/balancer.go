@@ -14,9 +14,17 @@ type LoadBalancer struct {
 }
 
 
-func NewLoadBalancer (strategyName string, backends []*types.Server) *LoadBalancer {
+func (lb *LoadBalancer) NewLoadBalancer (strategyName string, backends []*types.Server) *LoadBalancer {
 	return &LoadBalancer{
 		Strategy: strategy.Get(strategyName),
 		Backends: backends,
 	}
+}
+
+
+func (lb *LoadBalancer) Balance() *types.Server {
+	lb.Mutex.Lock()
+	defer lb.Mutex.Unlock()
+	
+	return lb.Strategy.Next(lb.Backends) 
 }
