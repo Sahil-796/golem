@@ -14,7 +14,7 @@ type LoadBalancer struct {
 }
 
 
-func (lb *LoadBalancer) NewLoadBalancer (strategyName string, backends []*types.Server) *LoadBalancer {
+func NewLoadBalancer (strategyName string, backends []*types.Server) *LoadBalancer {
 	return &LoadBalancer{
 		Strategy: strategy.Get(strategyName),
 		Backends: backends,
