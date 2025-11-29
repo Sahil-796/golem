@@ -33,15 +33,19 @@ func LoadConfig() (*types.Config, []*types.Server, error){
     
     	serverConfig := &cfg.Servers[i] //pointer to the server config
     	
-    	serverConfig.HealthCheckConfig.SetDefaults() // setting default values
-     
+     	hc := serverConfig.HealthCheckConfig
+     	fmt.Printf("Before Defaults: %+v\n", serverConfig.HealthCheckConfig)
+      	serverConfig.HealthCheckConfig.SetDefaults()
+       	fmt.Printf("After Defaults:  %+v\n", serverConfig.HealthCheckConfig)
+
+       
      	// validating 
-        if err := serverConfig.Validate(); err != nil {
+        if err := hc.Validate(); err != nil {
             return nil, nil, fmt.Errorf("invalid server config: %w", err)
         }
     	
         // parsing a final url and saving it in Server.URL url.URL
-    	healthURL, err := BuildFinalURL(serverConfig.HealthCheckConfig)
+    	healthURL, err := BuildFinalHealthURL(serverConfig.HealthCheckConfig)
      	if err!=nil {
       		return nil, nil, fmt.Errorf("invalid url : %w", err)
       	}
@@ -51,6 +55,8 @@ func LoadConfig() (*types.Config, []*types.Server, error){
            Host:   healthURL.Host,
        }
        
+      	fmt.Printf("%+v\n", serverConfig.HealthCheckConfig)
+
        	server := &types.Server {
 	       URL: baseURL,
 		   HealthCheckURL: healthURL,							
@@ -68,7 +74,7 @@ func LoadConfig() (*types.Config, []*types.Server, error){
 }
 
 
-func BuildFinalURL(hc types.HealthCheckConfig) (*url.URL, error) {
+func BuildFinalHealthURL(hc types.HealthCheckConfig) (*url.URL, error) {
     if hc.Host == "" {
         return nil, fmt.Errorf("cannot build URL: host missing")
     }
@@ -85,7 +91,7 @@ func BuildFinalURL(hc types.HealthCheckConfig) (*url.URL, error) {
     built := &url.URL{
            Scheme: hc.Protocol, // http / https
            Host:   host,        // "api:3000" OR "localhost:8080"
-           Path:   "/",     // "/health" OR "/"
+           Path:   hc.Path,     // "/health" OR "/"
        }
 
     return built, nil

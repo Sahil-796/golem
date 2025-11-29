@@ -1,6 +1,7 @@
 package health
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"time"
@@ -22,21 +23,28 @@ func ActiveCheckSingle(servers *types.Server, ServerConfig types.ServerConfig)  
 	// ServerConfig: the configuration for each server's health check
 	
 	
-	client := &http.Client{
-		Timeout: ServerConfig.HealthCheckConfig.Timeout,
-	}
+	client := &http.Client{}
 		
 		healthUrl := servers.HealthCheckURL
 
-		result, err := client.Get(healthUrl.String())
-		servers.LastCheck = time.Now()
-		
-		if result != nil {
-			defer result.Body.Close()
+		ctx, cancel := context.WithTimeout(context.Background(), ServerConfig.HealthCheckConfig.Timeout)
+		defer cancel()
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodHead, healthUrl.String(), nil)
+		if err != nil {
+			log.Printf("[HealthCheck] %s request error: %v", healthUrl, err)
+			return
 		}
-		
+
+		// start := time.Now()
+		resp, err := client.Do(req)
+		servers.LastCheck = time.Now()
+		// latency := servers.LastCheck.Sub(start)
+
 		servers.Mutex.Lock()
-		if err != nil || result.StatusCode != http.StatusOK {
+		defer servers.Mutex.Unlock()
+		
+		if err != nil || resp.StatusCode != http.StatusOK {
 			
 			log.Printf("[HealthCheck] %s failed: %v", servers.HealthCheckURL, err)
 			servers.ConsecutiveFailures++
@@ -50,7 +58,6 @@ func ActiveCheckSingle(servers *types.Server, ServerConfig types.ServerConfig)  
 							servers.Status = StatusDegraded
 						}
 			
-			servers.Mutex.Unlock()
 			return 
 		}
 		
@@ -67,7 +74,6 @@ func ActiveCheckSingle(servers *types.Server, ServerConfig types.ServerConfig)  
 			servers.Status = StatusWarmingUp
 		}
 
-		servers.Mutex.Unlock()
 		
 	
 	

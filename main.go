@@ -35,4 +35,6 @@ func main() {
 		core.Proxy(w, r, backend.URL)
 	})
 	
+	log.Println("Load balancer running on :8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }

@@ -45,16 +45,14 @@ type HealthCheckConfig struct {
 }
 
 
-func (sc *ServerConfig) Validate() error {
-	hc := sc.HealthCheckConfig
-
+func (hc *HealthCheckConfig) Validate() error {
 
 	if hc.Host == "" {
 		return fmt.Errorf("'health_check.host' must be provided")
 	}
 	
-	validProtocols := map[string]bool{"http": true, "https": true, "tcp": false, "udp": false}
-	if!validProtocols[hc.Protocol] {
+	validProtocols := map[string]bool{"http": true, "https": true}
+	if !validProtocols[hc.Protocol] {
 		return fmt.Errorf("'health_check.protocol' must be one of %v", validProtocols)
 	}
 	
