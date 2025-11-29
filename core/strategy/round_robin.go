@@ -11,7 +11,7 @@ type RoundRobin struct {
 } 
 
 func (rr *RoundRobin) NewRoundRobin () *RoundRobin {
-	return new(RoundRobin)
+	return &RoundRobin{index: -1}
 }
 
 func (rr *RoundRobin) Next(servers []*types.Server) *types.Server {
@@ -26,8 +26,8 @@ func (rr *RoundRobin) Next(servers []*types.Server) *types.Server {
 	
 	for range n {
 		
-		s := servers[rr.index]
 		rr.index = (rr.index +1) % n
+		s := servers[rr.index]
 		
 		s.Mutex.Lock()
 		healthy := s.IsHealthy

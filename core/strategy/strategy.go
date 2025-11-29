@@ -9,3 +9,11 @@ type Strategy interface {
 	Next(servers []*types.Server) *types.Server
 }
 
+func Get(name string) Strategy {
+    switch name {
+    case "round_robin":
+        return &RoundRobin{}
+    default:
+        return &RoundRobin{}
+    }
+}

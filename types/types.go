@@ -14,12 +14,6 @@ type Config struct {
 	Servers  []ServerConfig `yaml:"server_configs" mapstructure:"server_configs"`
 }
 
-type LoadBalancer struct {
-	Current int        
-	Mutex   sync.Mutex 
-	Backends []*Server
-}
-
 
 // holds user relevant data for each server
 type Server struct {
