@@ -2,14 +2,17 @@ package config
 
 import (
 	"fmt"
+	"net"
+	"net/http"
+	"net/http/httputil"
 	"net/url"
+	"time"
 
 	"github.com/Sahil-796/golem/types"
 	"github.com/spf13/viper"
 )
 
-
-// change this according to removed url and keep a final - parsed, built, validated url 
+// change this according to removed url and keep a final - parsed, built, validated url
 // in Server.URL the concurrent one.
 
 func LoadConfig() (*types.Config, []*types.Server, error){
@@ -45,19 +48,27 @@ func LoadConfig() (*types.Config, []*types.Server, error){
         }
     	
         // parsing a final url and saving it in Server.URL url.URL
-    	healthURL, err := BuildFinalHealthURL(serverConfig.HealthCheckConfig)
+        healthURL, err := BuildFinalHealthURL(serverConfig.HealthCheckConfig)
      	if err!=nil {
       		return nil, nil, fmt.Errorf("invalid url : %w", err)
       	}
        
-       baseURL := &url.URL{
+       	baseURL := &url.URL{
            Scheme: healthURL.Scheme,
            Host:   healthURL.Host,
-       }
+        }
        
-      	fmt.Printf("%+v\n", serverConfig.HealthCheckConfig)
+        proxy := httputil.NewSingleHostReverseProxy(baseURL)
+       
+              
+        proxy.Transport = &http.Transport{
+                  MaxIdleConns:        100,              // 100 pipes open
+                  IdleConnTimeout:     90 * time.Second, // 90s to close
+                  ResponseHeaderTimeout: 2 * time.Second, // timeout
+              }
+        fmt.Printf("%+v\n", serverConfig.HealthCheckConfig)
 
-       	server := &types.Server {
+        server := &types.Server {
 	       URL: baseURL,
 		   HealthCheckURL: healthURL,							
 	       IsHealthy: true,

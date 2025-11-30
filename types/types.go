@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"net/http/httputil"
 	"net/url"
 	"sync"
 	"time"
@@ -18,6 +19,7 @@ type Config struct {
 // holds user relevant data for each server
 type Server struct {
 	URL            *url.URL   
+	Proxy *httputil.ReverseProxy
 	HealthCheckURL *url.URL
 	IsHealthy      bool       
 	Status         string
@@ -78,7 +80,7 @@ func (hc *HealthCheckConfig) SetDefaults() {
 	}
 	if hc.Interval == 0 {
 		hc.Interval = 10 * time.Second
-	}
+	}	
 	if hc.HealthyThreshold == 0 {
 		hc.HealthyThreshold = 3
 	}
