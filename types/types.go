@@ -1,44 +1,48 @@
 package types
 
 import (
-	"fmt"
-	"net/http/httputil"
+	"net/http"
 	"net/url"
 	"sync"
 	"time"
 )
 
-// config struct for configuration
-// includes LoadBalancer, Servers, Strategy
 type Config struct {
 	Strategy string         `yaml:"strategy" mapstructure:"strategy"` 
 	Servers  []ServerConfig `yaml:"server_configs" mapstructure:"server_configs"`
 }
 
+type ServerConfig struct {
+	// Server information
+	Host         string            `yaml:"host" mapstructure:"host"`
+	Port         int               `yaml:"port" mapstructure:"port"`
+	Protocol     string            `yaml:"protocol" mapstructure:"protocol"` // http, https
 
-// holds user relevant data for each server
-type Server struct {
-	URL            *url.URL   
-	Proxy *httputil.ReverseProxy
-	HealthCheckURL *url.URL
-	IsHealthy      bool       
-	Status         string
-	ConsecutiveFailures int 
-	ConsecutiveSuccesses int 
-	Mutex          sync.Mutex 
-	LastCheck      time.Time
+	// Settings or configs
+	ProxyTimeout time.Duration     `yaml:"proxy_timeout" mapstructure:"proxy_timeout"`
+	Weight       int               `yaml:"weight" mapstructure:"weight"`
+	
+	//health check configs
+	HealthCheck  HealthCheckConfig `yaml:"health_check" mapstructure:"health_check"`
 }
 
-// holds internally relevant or config data for each server
-type ServerConfig struct {
-	HealthCheckConfig HealthCheckConfig `yaml:"health_check" mapstructure:"health_check"`
+type Server struct {
+	URL            *url.URL   
+	HealthCheckURL *url.URL
+	Proxy          http.Handler 
+
+	Weight         int
+	IsHealthy      bool       
+	Status         string
+	ConsecutiveFailures  int 
+	ConsecutiveSuccesses int 
+	Mutex                sync.Mutex 
+	LastCheck            time.Time
 }
 
 type HealthCheckConfig struct {
-	Host               string        `yaml:"host" mapstructure:"host"` 
-	Protocol           string        `yaml:"protocol" mapstructure:"protocol"` // default: http
-	Port               int           `yaml:"port" mapstructure:"port"` 
-	Path               string        `yaml:"path" mapstructure:"path"` // default: /
+
+	Path               string        `yaml:"path" mapstructure:"path"` 
 	Timeout            time.Duration `yaml:"timeout" mapstructure:"timeout"`
 	Interval           time.Duration `yaml:"interval" mapstructure:"interval"`
 	HealthyThreshold   int           `yaml:"healthy_threshold" mapstructure:"healthy_threshold"`
@@ -46,32 +50,12 @@ type HealthCheckConfig struct {
 	Code               int           `yaml:"code" mapstructure:"code"`
 }
 
-
-func (hc *HealthCheckConfig) Validate() error {
-
-	if hc.Host == "" {
-		return fmt.Errorf("'health_check.host' must be provided")
-	}
-	
-	validProtocols := map[string]bool{"http": true, "https": true}
-	if !validProtocols[hc.Protocol] {
-		return fmt.Errorf("'health_check.protocol' must be one of %v", validProtocols)
-	}
-	
-	if hc.HealthyThreshold <= 0 {
-        return fmt.Errorf("'healthy_threshold' must be a positive integer (>= 1)")
-    }
-    if hc.UnhealthyThreshold <= 0 {
-        return fmt.Errorf("'unhealthy_threshold' must be a positive integer (>= 1)")
-    }
+func (sc *ServerConfig) Validate() error {
 
 	return nil
 }
 
 func (hc *HealthCheckConfig) SetDefaults() {
-	if hc.Protocol == "" {
-		hc.Protocol = "http"
-	}
 	if hc.Path == "" {
 		hc.Path = "/"
 	}
@@ -80,7 +64,7 @@ func (hc *HealthCheckConfig) SetDefaults() {
 	}
 	if hc.Interval == 0 {
 		hc.Interval = 10 * time.Second
-	}	
+	}
 	if hc.HealthyThreshold == 0 {
 		hc.HealthyThreshold = 3
 	}

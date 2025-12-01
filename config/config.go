@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -15,95 +14,92 @@ import (
 // change this according to removed url and keep a final - parsed, built, validated url
 // in Server.URL the concurrent one.
 
-func LoadConfig() (*types.Config, []*types.Server, error){
-	
+func LoadConfig() (*types.Config, []*types.Server, error) {
+
 	// setup of viper
 	viper.SetConfigFile("config.yaml")
-	if err := viper.ReadInConfig(); err!=nil {
+	if err := viper.ReadInConfig(); err != nil {
 		return nil, nil, fmt.Errorf("error reading config: %w", err)
 	}
-	
-	
-	cfg := &types.Config{} 
-	
+
+	cfg := &types.Config{}
+
 	if err := viper.Unmarshal(cfg); err != nil {
 		return nil, nil, fmt.Errorf("error reading config.yaml: %w", err)
 	}
 
 	runtimeServers := make([]*types.Server, 0, len(cfg.Servers))
-    
-    for i := range cfg.Servers {
-    
-    	serverConfig := &cfg.Servers[i] //pointer to the server config
-    	
-     	hc := serverConfig.HealthCheckConfig
-     	fmt.Printf("Before Defaults: %+v\n", serverConfig.HealthCheckConfig)
-      	serverConfig.HealthCheckConfig.SetDefaults()
-       	fmt.Printf("After Defaults:  %+v\n", serverConfig.HealthCheckConfig)
 
-       
-     	// validating 
-        if err := hc.Validate(); err != nil {
-            return nil, nil, fmt.Errorf("invalid server config: %w", err)
-        }
-    	
-        // parsing a final url and saving it in Server.URL url.URL
-        healthURL, err := BuildFinalHealthURL(serverConfig.HealthCheckConfig)
-     	if err!=nil {
-      		return nil, nil, fmt.Errorf("invalid url : %w", err)
-      	}
-       
-       	baseURL := &url.URL{
-           Scheme: healthURL.Scheme,
-           Host:   healthURL.Host,
-        }
-       
-        proxy := httputil.NewSingleHostReverseProxy(baseURL)
-       
-              
-        proxy.Transport = &http.Transport{
-                  MaxIdleConns:        100,              // 100 pipes open
-                  IdleConnTimeout:     90 * time.Second, // 90s to close
-                  ResponseHeaderTimeout: 2 * time.Second, // timeout
-              }
-        fmt.Printf("%+v\n", serverConfig.HealthCheckConfig)
+	for i := range cfg.Servers {
 
-        server := &types.Server {
-	       URL: baseURL,
-		   HealthCheckURL: healthURL,							
-	       IsHealthy: true,
-		   Status: "initial",
-	       ConsecutiveFailures: 0,
-	       ConsecutiveSuccesses: 0,
-        }
-        
-        runtimeServers = append(runtimeServers, server)
+		serverConfig := &cfg.Servers[i] //pointer to the server config
 
-    }
-    
-    return cfg, runtimeServers, nil
+		hc := serverConfig.HealthCheckConfig
+		fmt.Printf("Before Defaults: %+v\n", serverConfig.HealthCheckConfig)
+		serverConfig.HealthCheckConfig.SetDefaults()
+		fmt.Printf("After Defaults:  %+v\n", serverConfig.HealthCheckConfig)
+
+		// validating
+		if err := hc.Validate(); err != nil {
+			return nil, nil, fmt.Errorf("invalid server config: %w", err)
+		}
+
+		// parsing a final url and saving it in Server.URL url.URL
+		healthURL, err := BuildFinalHealthURL(serverConfig.HealthCheckConfig)
+		if err != nil {
+			return nil, nil, fmt.Errorf("invalid url : %w", err)
+		}
+		
+		baseURL := &url.URL{
+			Scheme: healthURL.Scheme,
+			Host:   fmt.Sprintf("%s:%d", serverConfig.Host, serverConfig.Port),
+		}
+
+		proxy := httputil.NewSingleHostReverseProxy(baseURL)
+
+		proxy.Transport = &http.Transport{
+			MaxIdleConns:          100,              // 100 pipes open
+			IdleConnTimeout:       90 * time.Second, // 90s to close
+			ResponseHeaderTimeout: 2 * time.Second,  // timeout
+		}
+		fmt.Printf("%+v\n", serverConfig.HealthCheckConfig)
+
+		server := &types.Server{
+			URL:            baseURL,
+			HealthCheckURL: healthURL,
+			
+			IsHealthy:            true,
+			Status:               "initial",
+			ConsecutiveFailures:  0,
+			ConsecutiveSuccesses: 0,
+		}
+
+		runtimeServers = append(runtimeServers, server)
+
+	}
+
+	return cfg, runtimeServers, nil
 }
 
-
 func BuildFinalHealthURL(hc types.HealthCheckConfig) (*url.URL, error) {
-    if hc.Host == "" {
-        return nil, fmt.Errorf("cannot build URL: host missing")
-    }
+	if hc.Host == "" {
+		return nil, fmt.Errorf("cannot build URL: host missing")
+	}
 
-    if hc.Protocol != "http" && hc.Protocol != "https" {
-        return nil, fmt.Errorf("build url: protocol '%s' not supported yet", hc.Protocol)
-    }
-    
-    host := hc.Host
-       if hc.Port > 0 {
-           host = fmt.Sprintf("%s:%d", hc.Host, hc.Port)
-       }
-   
-    built := &url.URL{
-           Scheme: hc.Protocol, // http / https
-           Host:   host,        // "api:3000" OR "localhost:8080"
-           Path:   hc.Path,     // "/health" OR "/"
-       }
+	if hc.Protocol != "http" && hc.Protocol != "https" {
+		return nil, fmt.Errorf("build url: protocol '%s' not supported yet", hc.Protocol)
+	}
 
-    return built, nil
+	host := hc.Host
+	if hc.Port > 0 {
+		host = fmt.Sprintf("%s:%d", hc.Host, hc.Port)
+	}
+
+	built := &url.URL{
+		Scheme: hc.Protocol, // http / https
+		Host:   host,        // "api:3000" OR "localhost:8080"
+		Path:   hc.Path,     // "/health" OR "/"
+	}
+
+	return built, nil
 }
