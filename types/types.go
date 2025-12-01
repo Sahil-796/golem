@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"sync"
 	"time"
+	"fmt"
 )
 
 type Config struct {
@@ -24,6 +25,27 @@ type ServerConfig struct {
 	
 	//health check configs
 	HealthCheck  HealthCheckConfig `yaml:"health_check" mapstructure:"health_check"`
+}
+
+func (sc *ServerConfig) Validate() error {
+	if sc.Host == "" {
+		return fmt.Errorf("server host is required")
+	}
+	if sc.Port <= 0 {
+		return fmt.Errorf("server port must be a positive integer")
+	}
+	if sc.Protocol == "" {
+		sc.Protocol = "http" // Default
+	}
+	if sc.Protocol != "http" && sc.Protocol != "https" {
+		return fmt.Errorf("protocol must be 'http' or 'https'")
+	}
+
+	// Validate the nested health check config
+	if err := sc.HealthCheck.Validate(); err != nil {
+		return fmt.Errorf("health check validation error: %w", err)
+	}
+	return nil
 }
 
 type Server struct {
@@ -50,8 +72,16 @@ type HealthCheckConfig struct {
 	Code               int           `yaml:"code" mapstructure:"code"`
 }
 
-func (sc *ServerConfig) Validate() error {
-
+func (hc *HealthCheckConfig) Validate() error {
+	if hc.Path == "" {
+		return fmt.Errorf("health_check.path is required")
+	}
+	if hc.HealthyThreshold <= 0 {
+		return fmt.Errorf("healthy_threshold must be > 0")
+	}
+	if hc.UnhealthyThreshold <= 0 {
+		return fmt.Errorf("unhealthy_threshold must be > 0")
+	}
 	return nil
 }
 
