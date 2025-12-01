@@ -47,9 +47,9 @@ func LoadConfig() (*types.Config, []*types.Server, error) {
 
 		// Validation of Health Check 
 		serverConfig.HealthCheck.SetDefaults()
-		// if err := serverConfig.HealthCheck.Validate(); err != nil {
-		// 	return nil, nil, fmt.Errorf("invalid health check config: %w", err)
-		// }
+		if err := serverConfig.Validate(); err != nil {
+			return nil, nil, fmt.Errorf("invalid health check config: %w", err)
+		}
 
 		// Build Health URL
 		// passing parent fields + (path = health path)
