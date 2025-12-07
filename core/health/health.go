@@ -7,7 +7,7 @@ import (
 
 func StartHealthCheckers(servers []*types.Server, cfg []types.ServerConfig) {
     for i := range servers {
-        interval := cfg[i].HealthCheckConfig.Interval
+        interval := cfg[i].HealthCheck.Interval
 
         go func(i int) {
             ticker := time.NewTicker(interval)

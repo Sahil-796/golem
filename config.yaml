@@ -1,28 +1,20 @@
-strategy: round_robin # define your strategy here, for strategy details open docs/loadbalancer.md or github.com/Sahil-796/golem/docs/loadbalancer.md
+strategy: round_robin
 
 server_configs:
 
-  - health_check:  
-      host: "localhost"
-      protocol: "http" # protocol of your service, eg: http, https, tcp, grpc
-      port: 3000 # which port your service runs on inside the container or host
-      path: "/health" # path to health check ep (defaults to / if not specified)
-      timeout: "3s" # timeout for health check request to register failure as timeout
-      interval: "10s" # interval between health checks
-      healthy_threshold: 2 # number of consecutive successful health checks required to mark healthy
-      unhealthy_threshold: 3 # number of consecutive failed health checks required to mark unhealthy
-      code: 200 # status code expected from health check ep 
+  - host: "localhost"
+    port: 3000
+    protocol: "http"
+    proxy_timeout: "10s"
+    health_check:
+      path: "/health"
+      interval: "10s"
+      timeout: "3s"
 
-  - health_check:  
-      host: "localhost"
-      protocol: "http" # protocol of your service, eg: http, https, tcp, grpc
-      port: 3001 # which port your service runs on inside the container or host
-      path: "/health" # path to health check ep (defaults to / if not specified)
-      timeout: "3s" # timeout for health check request to register failure as timeout
-      interval: "15s" # interval between health checks
-      healthy_threshold: 2 # number of consecutive successful health checks required to mark healthy
-      unhealthy_threshold: 3 # number of consecutive failed health checks required to mark unhealthy
-      code: 200 # status code expected from health check ep 
-
-# to add more services, do this:
-
+  - host: "localhost"
+    port: 3001
+    protocol: "http"
+    proxy_timeout: "15s"
+    health_check:
+      path: "/health"
+      interval: "15s"

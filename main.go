@@ -32,7 +32,7 @@ func main() {
 			http.Error(w, "No healthy backend available", http.StatusServiceUnavailable)
 		}
 		
-		core.Proxy(w, r, backend.URL)
+		backend.Proxy.ServeHTTP(w, r) 
 	})
 	
 	log.Println("Load balancer running on :8080")

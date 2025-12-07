@@ -27,7 +27,7 @@ func ActiveCheckSingle(servers *types.Server, ServerConfig types.ServerConfig)  
 		
 		healthUrl := servers.HealthCheckURL
 
-		ctx, cancel := context.WithTimeout(context.Background(), ServerConfig.HealthCheckConfig.Timeout)
+		ctx, cancel := context.WithTimeout(context.Background(), ServerConfig.HealthCheck.Timeout)
 		defer cancel()
 
 		req, err := http.NewRequestWithContext(ctx, http.MethodHead, healthUrl.String(), nil)
@@ -50,7 +50,7 @@ func ActiveCheckSingle(servers *types.Server, ServerConfig types.ServerConfig)  
 			servers.ConsecutiveFailures++
 			servers.ConsecutiveSuccesses = 0
 			
-			if servers.ConsecutiveFailures >= ServerConfig.HealthCheckConfig.UnhealthyThreshold {
+			if servers.ConsecutiveFailures >= ServerConfig.HealthCheck.UnhealthyThreshold {
 							servers.IsHealthy = false
 							servers.Status = StatusUnhealthy
 							log.Printf("[HealthCheck] %s status set to unhealthy: %v", servers.HealthCheckURL, err)
@@ -66,7 +66,7 @@ func ActiveCheckSingle(servers *types.Server, ServerConfig types.ServerConfig)  
 		servers.ConsecutiveSuccesses++
 		servers.ConsecutiveFailures = 0
 		
-		if servers.ConsecutiveSuccesses >= ServerConfig.HealthCheckConfig.HealthyThreshold {
+		if servers.ConsecutiveSuccesses >= ServerConfig.HealthCheck.HealthyThreshold {
 			servers.IsHealthy = true
 			servers.Status = StatusHealthy
 			log.Printf("[HealthCheck] %s status set to healthy: %v", servers.HealthCheckURL, err)
