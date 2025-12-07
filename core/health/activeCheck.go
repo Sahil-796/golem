@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/Sahil-796/golem/types"
 )
@@ -14,18 +13,17 @@ const (
     StatusDegraded  = "Degraded"     // failing but not yet unhealthy
     StatusHealthy   = "Healthy"      // well congrats
     StatusUnhealthy = "Unhealthy"    // doomed
-    StatusOffline   = "Offline"      // server is down/not reachable
 )
 
-func ActiveCheckSingle(servers *types.Server, ServerConfig types.ServerConfig)  {
+func ActiveCheckSingle(server *types.Server, ServerConfig types.ServerConfig)  {
 	
-	// servers: the live list of servers (mutex) which keeps track of health status of each server and is parallelized
+	// server: the live list of server (mutex) which keeps track of health status of each server and is parallelized
 	// ServerConfig: the configuration for each server's health check
 	
 	
 	client := &http.Client{}
 		
-		healthUrl := servers.HealthCheckURL
+		healthUrl := server.HealthCheckURL
 
 		ctx, cancel := context.WithTimeout(context.Background(), ServerConfig.HealthCheck.Timeout)
 		defer cancel()
@@ -36,43 +34,56 @@ func ActiveCheckSingle(servers *types.Server, ServerConfig types.ServerConfig)  
 			return
 		}
 
-		// start := time.Now()
 		resp, err := client.Do(req)
-		servers.LastCheck = time.Now()
-		// latency := servers.LastCheck.Sub(start)
 
-		servers.Mutex.Lock()
-		defer servers.Mutex.Unlock()
+		server.Mutex.Lock()
+		defer server.Mutex.Unlock()
 		
 		if err != nil || resp.StatusCode != http.StatusOK {
 			
-			log.Printf("[HealthCheck] %s failed: %v", servers.HealthCheckURL, err)
-			servers.ConsecutiveFailures++
-			servers.ConsecutiveSuccesses = 0
+			log.Printf("[HealthCheck] %s failed: %v", server.HealthCheckURL, err)
+			server.ConsecutiveFailures++
+			server.ConsecutiveSuccesses = 0
 			
-			if servers.ConsecutiveFailures >= ServerConfig.HealthCheck.UnhealthyThreshold {
-							servers.IsHealthy = false
-							servers.Status = StatusUnhealthy
-							log.Printf("[HealthCheck] %s status set to unhealthy: %v", servers.HealthCheckURL, err)
-						} else {
-							servers.Status = StatusDegraded
+			if server.ConsecutiveFailures >= ServerConfig.HealthCheck.UnhealthyThreshold {
+					if server.IsHealthy {
+							log.Printf("[HealthCheck] %s is now %s (Error: %v)", server.HealthCheckURL, StatusUnhealthy, err)
 						}
+						
+						server.IsHealthy = false
+						server.Status = StatusUnhealthy
+					} else {
+						server.Status = StatusDegraded
+						log.Printf("[HealthCheck] %s is %s (%d/%d failures)", 
+							server.HealthCheckURL, 
+							StatusDegraded, 
+							server.ConsecutiveFailures, 
+							ServerConfig.HealthCheck.UnhealthyThreshold,
+						)					
+					}
 			
 			return 
 		}
+				
+		server.ConsecutiveSuccesses++
+		server.ConsecutiveFailures = 0
 		
-		log.Printf("[HealthCheck] %s Success: %v", servers.HealthCheckURL, err)
-		
-		servers.ConsecutiveSuccesses++
-		servers.ConsecutiveFailures = 0
-		
-		if servers.ConsecutiveSuccesses >= ServerConfig.HealthCheck.HealthyThreshold {
-			servers.IsHealthy = true
-			servers.Status = StatusHealthy
-			log.Printf("[HealthCheck] %s status set to healthy: %v", servers.HealthCheckURL, err)
+		if server.ConsecutiveSuccesses >= ServerConfig.HealthCheck.HealthyThreshold {
+			if !server.IsHealthy {
+				log.Printf("[HealthCheck] %s is now %s", server.HealthCheckURL, StatusHealthy)
+			}
+			
+			server.IsHealthy = true
+			server.Status = StatusHealthy
+
 		} else {
-			servers.Status = StatusWarmingUp
-		}
+			server.Status = StatusWarmingUp
+			log.Printf("[HealthCheck] %s is %s (%d/%d successes)", 
+				server.HealthCheckURL, 
+				StatusWarmingUp, 
+				server.ConsecutiveSuccesses, 
+				ServerConfig.HealthCheck.HealthyThreshold,
+			)		}
 
 		
 	
