@@ -5,7 +5,7 @@ server_configs:
   - host: "localhost"
     port: 3000
     protocol: "http"
-    proxy_timeout: "2s"
+    proxy_timeout: "10s"
     health_check:
       path: "/health"
       interval: "10s"
@@ -14,7 +14,7 @@ server_configs:
   - host: "localhost"
     port: 3001
     protocol: "http"
-    proxy_timeout: "5s"
+    proxy_timeout: "15s"
     health_check:
       path: "/health"
       interval: "15s"

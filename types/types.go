@@ -51,7 +51,7 @@ func (sc *ServerConfig) Validate() error {
 type Server struct {
 	URL            *url.URL   
 	HealthCheckURL *url.URL
-	Proxy          http.Handler 
+	Proxy          http.Handler  // handler interface is pre-set and is boxed as NewSingleHostReverseProxy()
 
 	Weight         int
 	IsHealthy      bool       
