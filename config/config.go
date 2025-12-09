@@ -85,6 +85,14 @@ func LoadConfig() (*types.Config, []*types.Server, error) {
 			IdleConnTimeout:       90 * time.Second, 
 			ResponseHeaderTimeout: timeout,          
 		}
+		
+		// proxy error handler function
+		proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error){
+			log.Printf("[%s] Proxy Error: %v", targetURL.Host, err)
+						w.WriteHeader(http.StatusBadGateway)
+						w.Write([]byte(fmt.Sprintf(`{"error": "Backend Unavailable", "details": "%v"}`, err)))
+					}
+	}
 
 		// Create runtime Server
 		server := &types.Server{
