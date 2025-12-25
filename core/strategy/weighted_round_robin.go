@@ -5,12 +5,12 @@ import (
 	"sync"
 )
 
-type RoundRobin struct {
+type WeightedRoundRobin struct {
 	index int
 	Mutex sync.Mutex
 } 
 
-func (rr *RoundRobin) Next(servers []*types.Server) *types.Server {
+func (rr *WeightedRoundRobin) Next(servers []*types.Server) *types.Server {
 	
 	if len(servers) == 0 {
 		return nil
@@ -22,16 +22,7 @@ func (rr *RoundRobin) Next(servers []*types.Server) *types.Server {
 	
 	for range n {
 		
-		rr.index = (rr.index +1) % n
-		s := servers[rr.index]
 		
-		s.Mutex.Lock()
-		healthy := s.IsHealthy
-		s.Mutex.Unlock()
-		
-		if healthy { 
-			return s
-		}
 	}
 	
 	return nil

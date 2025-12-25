@@ -10,10 +10,10 @@ type Strategy interface {
 }
 
 func Get(name string) Strategy {
-    switch name {
-    case "round_robin":
-        return &RoundRobin{}
-    default:
-        return &RoundRobin{}
-    }
+	switch name {
+	case "round_robin":
+		return &RoundRobin{index: -1}
+	default:
+		return &RoundRobin{}
+	}
 }
