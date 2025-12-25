@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -92,7 +93,7 @@ func LoadConfig() (*types.Config, []*types.Server, error) {
 						w.WriteHeader(http.StatusBadGateway)
 						w.Write([]byte(fmt.Sprintf(`{"error": "Backend Unavailable", "details": "%v"}`, err)))
 					}
-	}
+	
 
 		// Create runtime Server
 		server := &types.Server{
