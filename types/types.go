@@ -21,7 +21,7 @@ type ServerConfig struct {
 
 	// Settings or configs
 	ProxyTimeout time.Duration     `yaml:"proxy_timeout" mapstructure:"proxy_timeout"`
-	Weight       int               `yaml:"weight" mapstructure:"weight"`
+	Weight       int               `yaml:"weight" mapstructure:"weight"` // weight for weighted rr
 	
 	//health check configs
 	HealthCheck  HealthCheckConfig `yaml:"health_check" mapstructure:"health_check"`
@@ -54,6 +54,7 @@ type Server struct {
 	Proxy          http.Handler  // handler interface is pre-set and is boxed as NewSingleHostReverseProxy()
 
 	Weight         int
+	CurrentWeight  int // current weight/laod on the server, starts from 0
 	IsHealthy      bool       
 	Status         string
 	ConsecutiveFailures  int 
