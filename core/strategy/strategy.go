@@ -13,6 +13,8 @@ func Get(name string) Strategy {
 	switch name {
 	case "round_robin":
 		return &RoundRobin{index: -1}
+	case "weighted_round_robin":
+		return &WeightedRoundRobin{index: 0}
 	default:
 		return &RoundRobin{}
 	}

@@ -1,4 +1,4 @@
-strategy: round_robin
+strategy: weighted_round_robin
 
 server_configs:
 
@@ -6,15 +6,17 @@ server_configs:
     port: 3000
     protocol: "http"
     proxy_timeout: "10s"
+    weight: 2
     health_check:
       path: "/health"
-      interval: "10s"
+      interval: "3s"
       timeout: "3s"
 
   - host: "localhost"
     port: 3001
     protocol: "http"
     proxy_timeout: "15s"
+    weight: 3
     health_check:
       path: "/health"
-      interval: "15s"
+      interval: "5s"

@@ -10,18 +10,34 @@ type WeightedRoundRobin struct {
 	Mutex sync.Mutex
 } 
 
-func (rr *WeightedRoundRobin) Next(servers []*types.Server) *types.Server {
+func (wrr *WeightedRoundRobin) Next(servers []*types.Server) *types.Server {
 	
 	if len(servers) == 0 {
 		return nil
 	} 
 	
-	rr.Mutex.Lock()
-	defer rr.Mutex.Unlock() // defer to the end
+	wrr.Mutex.Lock()
+	defer wrr.Mutex.Unlock() // defer to the end
 	n:=len(servers)
 	
 	for range n {
 		
+		server := servers[wrr.index]
+		
+		if (server.Weight <= server.CurrentWeight) {
+			wrr.index = (wrr.index + 1) % n
+			server = servers[wrr.index]
+
+		}
+		
+		server.CurrentWeight++
+		server.Mutex.Lock()
+		healthy := server.IsHealthy
+		server.Mutex.Unlock()
+		
+		if healthy { 
+			return server
+		}
 		
 	}
 	
