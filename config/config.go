@@ -79,6 +79,7 @@ func LoadConfig() (*types.Config, []*types.Server, error) {
 			HealthCheckURL: healthURL,
 			// Proxy set later
 			Weight:               serverConfig.Weight,
+			CurrentConnections:   0,
 			IsHealthy:            true,
 			Status:               "initial",
 			ConsecutiveFailures:  0,

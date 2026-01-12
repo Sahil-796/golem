@@ -55,7 +55,7 @@ type Server struct {
 
 	Weight         int
 	CurrentWeight  int // current weight/laod on the server, starts from 0, reduces
-	currentConnections int // current number of active connections on the server, starts from 0, increases
+	CurrentConnections int // current number of active connections on the server, starts from 0, increases
 	IsHealthy      bool       
 	Status         string
 	ConsecutiveFailures  int 
