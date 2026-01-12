@@ -54,7 +54,8 @@ type Server struct {
 	Proxy          http.Handler  // handler interface is pre-set and is boxed as NewSingleHostReverseProxy()
 
 	Weight         int
-	CurrentWeight  int // current weight/laod on the server, starts from 0
+	CurrentWeight  int // current weight/laod on the server, starts from 0, reduces
+	currentConnections int // current number of active connections on the server, starts from 0, increases
 	IsHealthy      bool       
 	Status         string
 	ConsecutiveFailures  int 
