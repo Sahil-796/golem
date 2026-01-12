@@ -23,14 +23,29 @@ func (lc *LeastConnections) Next(servers []*types.Server) *types.Server {
 	
 	for i := range n {
 		
-		if (server!=nil && servers[i].CurrentConnections > server.CurrentConnections) {
-			// if (server == nil) {
-				
-			// }
-			// server = servers[i]
+		runtimeServer := servers[i]
+		runtimeServer.Mutex.Lock()
+		isHealthy := runtimeServer.IsHealthy
+		currConnections := runtimeServer.CurrentConnections
+		runtimeServer.Mutex.Unlock()
+		
+		if !isHealthy {
+			continue
 		}
 		
+		if server == nil {
+			server = runtimeServer
+			continue
+		}
 		
+		server.Mutex.Lock()
+		serverConnections := server.CurrentConnections;
+		server.Mutex.Unlock()
+		
+		
+		if currConnections < serverConnections {
+			server = runtimeServer
+		}
 	}
 	return server
 }
