@@ -24,15 +24,15 @@ func main() {
 	
 	lb := core.NewLoadBalancer(cfg.Strategy, servers)
 	
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/", func(writter http.ResponseWriter, request *http.Request) {
 		backend := lb.Balance()
 		
 		if backend == nil {
 			// status = 503 -> service unavailable
-			http.Error(w, "No healthy backend available", http.StatusServiceUnavailable)
+			http.Error(writter, "No healthy backend available", http.StatusServiceUnavailable)
 		}
 		
-		backend.Proxy.ServeHTTP(w, r) 
+		backend.Proxy.ServeHTTP(writter, request) 
 	})
 	
 	log.Println("Load balancer running on :8080")
