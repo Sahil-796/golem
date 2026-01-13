@@ -20,18 +20,20 @@ Golem sits between the client and backend services. It accepts requests, selects
     
     - **Round Robin:** Rotates requests sequentially across all healthy servers.
         
-    - _(Planned) Weighted Round Robin_
+    - **Weighted Round Robin:** Prioritizes servers based on their weight.
         
-    - _(Planned) Least Connections_
+    - **Least Connections:** Prioritizes servers with fewer active connections.
         
-- **Active Health Monitoring:** Periodically pings backends to verify status. Unhealthy servers are removed from rotation instantly.
+- **Active Health Monitoring:** Periodically pings backends to verify status. Unhealthy servers are removed from rotation instantly based on the configured threshold.
     
 - **Concurrency:** Built on Go's goroutines to handle high throughput with low overhead.
     
 - **Configurable:** Easy to read and setup YAML configuration for defining host, port, intervals, timeouts and health paths.
+- **Connection Pooling:** Efficiently manages connections to backend servers.
+- **Timeouts:** Sets timeouts for connection establishment, request processing, and response transmission.
     
 
-## Getting Started
+## To Run 
 
 ### Prerequisites
 
@@ -46,8 +48,13 @@ Golem sits between the client and backend services. It accepts requests, selects
     git clone [https://github.com/Sahil-796/golem.git](https://github.com/Sahil-796/golem.git)
     cd golem
     ```
+2. **Configure**: Edit the `config.yaml` file in the root directory.
+3. **Run main.go**
     
-2. **Build the binary**
+    ```
+    go run main.go
+    ```
+    
     
 
 ## Configuration
@@ -56,13 +63,13 @@ Open the `config.yaml` file in the root directory.
 
 ## Usage
 
-1. **Start your backend servers** (for testing, you can use simple python servers):
+1. **Start your backend servers** (for testing, you can use any simple servers):
     
 2. **Run Golem**:
     
 3. **Send a request**:
     
-    You should see the response from one of your backends. Repeated requests will cycle through them.
+    You should see the response from one of your backends according to the configured load balancing algorithm. Repeated requests will cycle through them.
     
 
 ## What is a Load Balancer?
@@ -74,5 +81,7 @@ A load balancer is a device or service that acts as a traffic cop for your serve
 - **Maximize throughput:** Process more requests per second.
     
 - **Ensure reliability:** If one server crashes, the load balancer stops sending it traffic.
-    
 
+## Wisdom
+The name golem is inspired by a clash royale card named golem which symbolizes strength and resilience. It's a fitting name for a load balancer that can handle heavy loads and keep your servers running smoothly.
+Also the go in golem stands for golang. 
