@@ -6,7 +6,6 @@ import (
 )
 
 type LeastConnections struct {
-	index int
 	Mutex sync.Mutex
 } 
 

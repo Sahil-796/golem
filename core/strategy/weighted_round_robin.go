@@ -25,9 +25,19 @@ func (wrr *WeightedRoundRobin) Next(servers []*types.Server) *types.Server {
 		
 		server.Mutex.Lock()
 		healthy := server.IsHealthy
+		currentWeight := server.CurrentWeight
+		weight := server.Weight
 		
-		if server.CurrentWeight >= server.Weight {
+		
+		if currentWeight >= weight {
 			server.CurrentWeight = 0 
+			server.Mutex.Unlock()
+			wrr.index = (wrr.index + 1) % n
+			continue
+		}
+		
+		
+		if !healthy {
 			server.Mutex.Unlock()
 			wrr.index = (wrr.index + 1) % n
 			continue
@@ -36,12 +46,7 @@ func (wrr *WeightedRoundRobin) Next(servers []*types.Server) *types.Server {
 		server.CurrentWeight++
 		server.Mutex.Unlock()
 		
-		if healthy {
-			return server
-		}
-		
-		// If not healthy, continue to next server
-		wrr.index = (wrr.index + 1) % n
+		return server
 	}
 	
 	return nil
