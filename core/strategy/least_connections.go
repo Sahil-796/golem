@@ -19,6 +19,7 @@ func (lc *LeastConnections) Next(servers []*types.Server) *types.Server {
 	n:=len(servers)
 	
 	var server *types.Server
+	var minConnections int
 	
 	for i := range n {
 		
@@ -34,16 +35,15 @@ func (lc *LeastConnections) Next(servers []*types.Server) *types.Server {
 		
 		if server == nil {
 			server = runtimeServer
+			minConnections = currConnections
 			continue
 		}
 		
-		server.Mutex.Lock()
-		serverConnections := server.CurrentConnections;
-		server.Mutex.Unlock()
 		
 		
-		if currConnections < serverConnections {
+		if currConnections < minConnections {
 			server = runtimeServer
+			minConnections = currConnections
 		}
 	}
 	return server
