@@ -2,12 +2,17 @@ package strategy
 
 import (
 	"errors"
+	"hash/fnv"
 	"net"
 	"net/http"
 	"strings"
-	"hash/fnv"
-	// "github.com/Sahil-796/golem/types"
+	"sync"
+	"github.com/Sahil-796/golem/types"
 )
+
+type IPHash struct {
+	Mutex sync.Mutex
+}
 
 // using consistent hashing (Rendezvous hashing) over normal hashing
 // this ensures consistent distribution of all ip
@@ -52,4 +57,35 @@ func getIP(r *http.Request) (string, error) {
 	
 	return netIP.String(), nil
 
+}
+
+func (i *IPHash) Next(request *http.Request, servers []*types.Server) *types.Server {
+	if len(servers) == 0 {
+		return nil
+	}
+	
+	i.Mutex.Lock()
+	defer i.Mutex.Unlock()
+	
+	clientIP, err := getIP(request)
+	if err != nil {
+		return nil
+	}
+	
+	var maxScore uint64
+	var selectedServer *types.Server
+	
+	for _, server := range servers {
+		
+		server.Mutex.Lock()
+		score := hrwScore(clientIP, server.URL.String())
+		server.Mutex.Unlock()
+		
+		if score > maxScore {
+			maxScore = score
+			selectedServer = server
+		}
+
+	}
+	return selectedServer
 }
