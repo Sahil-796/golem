@@ -15,6 +15,10 @@ func Get(name string) Strategy {
 		return &RoundRobin{index: -1}
 	case "weighted_round_robin":
 		return &WeightedRoundRobin{index: 0}
+	case "least_connections":
+		return &LeastConnections{}
+	case "ip_hash":
+		// return &IPHash{index: 0}
 	default:
 		return &RoundRobin{}
 	}
