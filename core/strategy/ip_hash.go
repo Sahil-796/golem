@@ -19,5 +19,19 @@ func getIP(r *http.Request) (string, error) {
 			}
 		}
 	}
-	return "", errors.New("IP not found")
+	
+	// fallback using RemoteAddr if browser connects to golem directly
+	ip, _, err := net.SplitHostPort(r.RemoteAddr) 
+		
+	if err != nil {
+		return "", err
+	}
+		
+	netIP := net.ParseIP(ip) // giga chad
+	if netIP == nil {
+		return "", errors.New("invalid IP")
+	}
+	
+	return netIP.String(), nil
+
 }
