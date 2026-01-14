@@ -2,11 +2,12 @@ package strategy
 
 import (
 	"github.com/Sahil-796/golem/types"
+	"net/http"
 )
 
 // defining an interface to implement the same method for types having the same method
 type Strategy interface {
-	Next(servers []*types.Server) *types.Server
+	Next(r *http.Request, servers []*types.Server) *types.Server
 }
 
 func Get(name string) Strategy {
@@ -18,7 +19,7 @@ func Get(name string) Strategy {
 	case "least_connections":
 		return &LeastConnections{}
 	case "ip_hash":
-		// return &IPHash{index: 0}
+		return &IPHash{}
 	default:
 		return &RoundRobin{}
 	}

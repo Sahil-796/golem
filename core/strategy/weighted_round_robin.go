@@ -3,6 +3,7 @@ package strategy
 import (
 	"github.com/Sahil-796/golem/types"
 	"sync"
+	"net/http"
 )
 
 type WeightedRoundRobin struct {
@@ -10,7 +11,7 @@ type WeightedRoundRobin struct {
 	Mutex sync.Mutex
 } 
 
-func (wrr *WeightedRoundRobin) Next(servers []*types.Server) *types.Server {
+func (wrr *WeightedRoundRobin) Next(_ *http.Request, servers []*types.Server) *types.Server {
 	
 	if len(servers) == 0 {
 		return nil

@@ -3,13 +3,14 @@ package strategy
 import (
 	"github.com/Sahil-796/golem/types"
 	"sync"
+	"net/http"
 )
 
 type LeastConnections struct {
 	Mutex sync.Mutex
 } 
 
-func (lc *LeastConnections) Next(servers []*types.Server) *types.Server {
+func (lc *LeastConnections) Next(_ *http.Request, servers []*types.Server) *types.Server {
 	if len(servers) == 0 {
 		return nil
 	} 
