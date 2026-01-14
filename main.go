@@ -25,7 +25,7 @@ func main() {
 	lb := core.NewLoadBalancer(cfg.Strategy, servers)
 	
 	http.HandleFunc("/", func(writter http.ResponseWriter, request *http.Request) {
-		backend := lb.Balance()
+		backend := lb.Balance(request)
 		
 		if backend == nil {
 			// status = 503 -> service unavailable

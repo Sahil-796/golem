@@ -4,6 +4,7 @@ import (
 	"sync"
 	"github.com/Sahil-796/golem/core/strategy"
 	"github.com/Sahil-796/golem/types"
+	"net/http"
 )
 
 
@@ -22,9 +23,9 @@ func NewLoadBalancer (strategyName string, backends []*types.Server) *LoadBalanc
 }
 
 
-func (lb *LoadBalancer) Balance() *types.Server {
+func (lb *LoadBalancer) Balance(r *http.Request) *types.Server {
 	lb.Mutex.Lock()
 	defer lb.Mutex.Unlock()
 	
-	return lb.Strategy.Next(lb.Backends) 
+	return lb.Strategy.Next(r, lb.Backends) 
 }
