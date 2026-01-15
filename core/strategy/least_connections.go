@@ -1,15 +1,16 @@
 package strategy
 
 import (
-	"github.com/Sahil-796/golem/types"
-	"sync"
-	"net/http"
 	"log"
+	"net/http"
+	"sync"
+
+	"github.com/Sahil-796/golem/types"
 )
 
 type LeastConnections struct {
 	Mutex sync.Mutex
-} 
+}
 
 func (lc *LeastConnections) Next(r *http.Request, servers []*types.Server) *types.Server {
 	if r == nil {
@@ -21,53 +22,39 @@ func (lc *LeastConnections) Next(r *http.Request, servers []*types.Server) *type
 		log.Printf("[WARN] LeastConnections.Next: no servers available")
 		return nil
 	}
-	
+
 	lc.Mutex.Lock()
-	defer lc.Mutex.Unlock() // defer to the end
-	n:=len(servers)
-	
-	var server *types.Server
-	var minConnections int
-	
-	for i := range n {
-		
-		runtimeServer := servers[i]
-		
-		if runtimeServer == nil {
-			log.Printf("[ERROR] LeastConnections.Next: server at index %d is nil", i)
+	defer lc.Mutex.Unlock()
+
+	var chosen *types.Server
+	min := int(^uint(0) >> 1) // max int
+
+	for i := 0; i < len(servers); i++ {
+		s := servers[i]
+		if s == nil {
 			continue
 		}
-		
-		runtimeServer.Mutex.Lock()
-		isHealthy := runtimeServer.IsHealthy
-		currConnections := runtimeServer.CurrentConnections
-		runtimeServer.Mutex.Unlock()
-		
-		if !isHealthy {
+
+		s.Mutex.Lock()
+		healthy := s.IsHealthy
+		conns := s.CurrentConnections
+		s.Mutex.Unlock()
+
+		if !healthy {
 			continue
 		}
-		
-		if currConnections < 0 {
-			log.Printf("[ERROR] LeastConnections.Next: server at index %d has negative connection count %d", i, currConnections)
-			continue
+
+		if conns < min {
+			min = conns
+			chosen = s
 		}
-		
-		if server == nil {
-			server = runtimeServer
-			minConnections = currConnections
-			continue
-		}
-		
-		if currConnections < minConnections {
-			server = runtimeServer
-			minConnections = currConnections
-		}
-	}
-	if server != nil {
-		log.Printf("[DEBUG] LeastConnections.Next: selected server with %d connections", minConnections)
-	} else {
-		log.Printf("[WARN] LeastConnections.Next: no healthy servers found among %d servers", n)
 	}
 
-	return server
+	if chosen != nil {
+		log.Printf("[DEBUG] LeastConnections.Next: selected server with %d active connections", min)
+	} else {
+		log.Printf("[WARN] LeastConnections.Next: no healthy servers found")
+	}
+
+	return chosen
 }

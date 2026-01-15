@@ -13,28 +13,19 @@ import (
 )
 
 func main() {
-	
+
 	cfg, servers, err := config.LoadConfig()
-	
+
 	if err != nil {
 		log.Fatal("Error loading config:", err)
 	}
-	
+
 	go health.StartHealthCheckers(servers, cfg.Servers)
-	
+
 	lb := core.NewLoadBalancer(cfg.Strategy, servers)
-	
-	http.HandleFunc("/", func(writter http.ResponseWriter, request *http.Request) {
-		backend := lb.Balance(request)
-		
-		if backend == nil {
-			// status = 503 -> service unavailable
-			http.Error(writter, "No healthy backend available", http.StatusServiceUnavailable)
-		}
-		
-		backend.Proxy.ServeHTTP(writter, request) 
-	})
-	
+
+	http.HandleFunc("/", lb.ServeHTTP)
+
 	log.Println("Load balancer running on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
