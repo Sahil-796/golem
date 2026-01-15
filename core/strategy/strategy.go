@@ -3,6 +3,7 @@ package strategy
 import (
 	"github.com/Sahil-796/golem/types"
 	"net/http"
+	"log"
 )
 
 // defining an interface to implement the same method for types having the same method
@@ -11,6 +12,8 @@ type Strategy interface {
 }
 
 func Get(name string) Strategy {
+	var strategy Strategy
+	
 	switch name {
 	case "round_robin":
 		return &RoundRobin{index: -1}
@@ -21,6 +24,10 @@ func Get(name string) Strategy {
 	case "ip_hash":
 		return &IPHash{}
 	default:
-		return &RoundRobin{}
+		log.Printf("[WARN] Unknown strategy '%s', defaulting to 'round_robin'", name)
+		strategy = &RoundRobin{index: -1}
 	}
+	
+	log.Printf("[INFO] Using strategy '%s'", name)
+	return strategy
 }
