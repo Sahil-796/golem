@@ -29,7 +29,7 @@ func (lc *LeastConnections) Next(r *http.Request, servers []*types.Server) *type
 	var chosen *types.Server
 	min := int(^uint(0) >> 1) // max int
 
-	for i := 0; i < len(servers); i++ {
+	for i := range servers {
 		s := servers[i]
 		if s == nil {
 			continue

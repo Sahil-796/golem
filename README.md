@@ -23,6 +23,8 @@ Golem sits between the client and backend services. It accepts requests, selects
     - **Weighted Round Robin:** Prioritizes servers based on their weight.
         
     - **Least Connections:** Prioritizes servers with fewer active connections.
+    
+    - **IP Hash:** Distributes requests based on the client's IP address. Used HRW (Hash Ring Weighted) algorithm for consistent hashing.
         
 - **Active Health Monitoring:** Periodically pings backends to verify status. Unhealthy servers are removed from rotation instantly based on the configured threshold.
     
@@ -37,7 +39,7 @@ Golem sits between the client and backend services. It accepts requests, selects
 
 ### Prerequisites
 
-- [Go](https://go.dev/dl/ "null") 1.21 or higher
+- Go 1.21 or higher
     
 
 ### Installation
